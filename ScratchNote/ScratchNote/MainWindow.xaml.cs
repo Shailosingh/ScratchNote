@@ -24,18 +24,46 @@ namespace ScratchNote
     /// </summary>
     public sealed partial class MainWindow : Window
     {
+        //Save file properties
+        public string ScratchNote_SaveFolderPath { get; private set; }
+        public string ScratchNote_SaveFolderName { get; private set; } = "ScratchNote Saves";
+        public string ScratchNote_TextSaveFilePath { get; private set; } 
+        public string ScratchNote_TextSaveFileName { get; private set; } = "ScratchNote.txt";
+
         public MainWindow()
         {
             //Set the title of app
             Title = "ScratchNote";
 
+            //Check if the user has the Save Folder and make it if not
+            string userPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            ScratchNote_SaveFolderPath = Path.Combine(userPath, ScratchNote_SaveFolderName);
+            if(!Directory.Exists(ScratchNote_SaveFolderPath))
+            {
+                Directory.CreateDirectory(ScratchNote_SaveFolderPath);
+            }
+
+            //Check if the text file has already been made and make it if not
+            ScratchNote_TextSaveFilePath = Path.Combine(ScratchNote_SaveFolderPath, ScratchNote_TextSaveFileName);
+            if(!File.Exists(ScratchNote_TextSaveFilePath))
+            {
+                FileStream newFile = File.Create(ScratchNote_TextSaveFilePath);
+                newFile.Close();
+            }
+
             this.InitializeComponent();
+
+            //Read the saved text file and paste its text into the Notepad TextBox
+            Notepad.Text = File.ReadAllText(ScratchNote_TextSaveFilePath);
 
             //Set size of window to size of the notepad
             ChangeWindowSize(Notepad.Width, Notepad.Height);
 
             //React to the window changing size by changing size of textbox
             this.SizeChanged += MainWindow_SizeChanged;
+
+            //React to the program exiting (ensure the Notepad text is saved)
+            this.Closed += MainWindow_Closed;
         }
 
         //Methods------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,6 +92,12 @@ namespace ScratchNote
             Notepad.MaxWidth = args.Size.Width;
             Notepad.Height = args.Size.Height;
             Notepad.MaxHeight = args.Size.Height;
+        }
+
+        private void MainWindow_Closed(object sender, WindowEventArgs args)
+        {
+            string notepadText = Notepad.Text;
+            File.WriteAllText(ScratchNote_TextSaveFilePath, notepadText);
         }
     }
 }
