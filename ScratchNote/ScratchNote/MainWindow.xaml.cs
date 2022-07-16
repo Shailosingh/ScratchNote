@@ -8,6 +8,8 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
+using System.Timers;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
@@ -29,6 +31,10 @@ namespace ScratchNote
         public string ScratchNote_SaveFolderName { get; private set; } = "ScratchNote Saves";
         public string ScratchNote_TextSaveFilePath { get; private set; } 
         public string ScratchNote_TextSaveFileName { get; private set; } = "ScratchNote.txt";
+
+        //Thread tracking properties
+        public object SaveLock { get; private set; } = new object();
+        public bool ProgramRunning { get; private set; } = true;
 
         public MainWindow()
         {
@@ -59,6 +65,10 @@ namespace ScratchNote
             //Set size of window to size of the notepad
             ChangeWindowSize(Notepad.Width, Notepad.Height);
 
+            //Create thread that saves the file every 10 minutes
+            Thread saveThread = new Thread(SaveThreadMethod);
+            saveThread.Start();
+
             //React to the window changing size by changing size of textbox
             this.SizeChanged += MainWindow_SizeChanged;
 
@@ -84,6 +94,23 @@ namespace ScratchNote
             appWindow.Resize(new Windows.Graphics.SizeInt32 { Width = (int)(width * scaling), Height = (int)(height * scaling) });
         }
 
+        /// <summary>
+        /// While the program is running, it will save the program every 10 seconds
+        /// </summary>
+        private void SaveThreadMethod()
+        {
+            //Initialize timer
+            System.Timers.Timer saveTimer = new System.Timers.Timer();
+            saveTimer.Interval = 10*1000;
+            saveTimer.Elapsed += SaveTimer_Elapsed;
+            saveTimer.Start();
+
+            //Wait for program to end
+            while (ProgramRunning) ;
+
+            //Stop the timer
+            saveTimer.Stop();
+        }
 
         //Events Handlers----------------------------------------------------------------------------------------------------------------------------------------------------------
         private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args)
@@ -96,8 +123,24 @@ namespace ScratchNote
 
         private void MainWindow_Closed(object sender, WindowEventArgs args)
         {
-            string notepadText = Notepad.Text;
-            File.WriteAllText(ScratchNote_TextSaveFilePath, notepadText);
+            lock(SaveLock)
+            {
+                string notepadText = Notepad.Text;
+                File.WriteAllText(ScratchNote_TextSaveFilePath, notepadText);
+                ProgramRunning = false;
+            }
+        }
+
+        private void SaveTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            lock (SaveLock)
+            {
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
+                    string notepadText = Notepad.Text;
+                    File.WriteAllText(ScratchNote_TextSaveFilePath, notepadText);
+                });
+            }
         }
     }
 }
