@@ -32,7 +32,7 @@
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
         DisplayName="ScratchNote"
-        Description="ScratchNote (Package)"
+        Description="ScratchNote is a fast autosaving text editor meant as a place for quick notes, usually relegated to notepad or scrap paper."
         BackgroundColor="transparent"
         Square150x150Logo="Images\Square150x150Logo.png"
         Square44x44Logo="Images\Square44x44Logo.png">
