@@ -39,7 +39,11 @@ namespace ScratchNote
         public object SaveLock { get; private set; } = new object();
         public bool ProgramRunning { get; private set; } = true;
 
-        public MainWindow()
+        //Window Settings
+        public IntPtr HWND { get; private set; }
+        public AppWindow APP_WINDOW { get; private set; }
+
+    public MainWindow()
         {
             //Set the title of app
             Title = "ScratchNote";
@@ -62,11 +66,11 @@ namespace ScratchNote
 
             this.InitializeComponent();
 
-            //Set icon of window
-            IntPtr windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            WindowId windowId = Win32Interop.GetWindowIdFromWindow(windowHandle);
-            var appWindow = AppWindow.GetFromWindowId(windowId);
-            appWindow.SetIcon(Path.Combine(Package.Current.InstalledLocation.Path, "Captionless.ico"));
+            //Set icon of window (also getting the window handle and app window)
+            HWND = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            WindowId windowId = Win32Interop.GetWindowIdFromWindow(HWND);
+            APP_WINDOW = AppWindow.GetFromWindowId(windowId);
+            APP_WINDOW.SetIcon(Path.Combine(Package.Current.InstalledLocation.Path, "Captionless.ico"));
 
             //Read the saved text file and paste its text into the Notepad TextBox
             Notepad.Text = File.ReadAllText(ScratchNote_TextSaveFilePath);
@@ -74,7 +78,7 @@ namespace ScratchNote
             //Set size of window to size of the notepad
             ChangeWindowSize(Notepad.Width, Notepad.Height);
 
-            //Create thread that saves the file every 10 minutes
+            //Create thread that saves the file every 10 seconds
             Thread saveThread = new Thread(SaveThreadMethod);
             saveThread.Start();
 
@@ -95,12 +99,9 @@ namespace ScratchNote
         public void ChangeWindowSize(double width, double height)
         {
             //Set the size of window taking into account DPI (https://stackoverflow.com/questions/67169712/winui-3-0-reunion-0-5-window-size)
-            IntPtr hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
-            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-            double dpi = (double)User32.GetDpiForWindow(hWnd);
+            double dpi = (double)User32.GetDpiForWindow(HWND);
             double scaling = dpi / 96;
-            appWindow.Resize(new Windows.Graphics.SizeInt32 { Width = (int)(width * scaling), Height = (int)(height * scaling) });
+            APP_WINDOW.Resize(new Windows.Graphics.SizeInt32 { Width = (int)(width * scaling), Height = (int)(height * scaling) });
         }
 
         /// <summary>
