@@ -18,6 +18,7 @@ using Windows.Foundation.Collections;
 using PInvoke;
 using Microsoft.UI;
 using Windows.ApplicationModel;
+using System.Diagnostics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -125,10 +126,14 @@ namespace ScratchNote
         //Events Handlers----------------------------------------------------------------------------------------------------------------------------------------------------------
         private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args)
         {
+            Debug.WriteLine($"Before: Width: {Notepad.Width}, Height: {Notepad.Height}");
+
             Notepad.Width = args.Size.Width;
             Notepad.MaxWidth = args.Size.Width;
             Notepad.Height = args.Size.Height;
             Notepad.MaxHeight = args.Size.Height;
+
+            Debug.WriteLine($"After: Width: {Notepad.Width}, Height: {Notepad.Height}");
         }
 
         private void MainWindow_Closed(object sender, WindowEventArgs args)
