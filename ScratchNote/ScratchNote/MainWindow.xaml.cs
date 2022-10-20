@@ -76,9 +76,6 @@ namespace ScratchNote
             //Read the saved text file and paste its text into the Notepad TextBox
             Notepad.Text = File.ReadAllText(ScratchNote_TextSaveFilePath);
 
-            //Set size of window to size of the notepad
-            ChangeWindowSize(Notepad.Width, Notepad.Height);
-
             //Create thread that saves the file every 10 seconds
             Thread saveThread = new Thread(SaveThreadMethod);
             saveThread.Start();
@@ -88,6 +85,9 @@ namespace ScratchNote
 
             //React to the program exiting (ensure the Notepad text is saved)
             this.Closed += MainWindow_Closed;
+
+            //Set size of window to size of the notepad
+            ChangeWindowSize(Notepad.Width, Notepad.Height);
         }
 
         //Methods------------------------------------------------------------------------------------------------------------------------------------------------------------------

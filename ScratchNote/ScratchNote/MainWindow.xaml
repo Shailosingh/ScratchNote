@@ -11,6 +11,8 @@
         <TextBox x:Name="Notepad" 
                  AcceptsReturn="True"
                  PlaceholderText="Type here..."
+                 ScrollViewer.VerticalScrollBarVisibility="Visible"
+                 ScrollViewer.HorizontalScrollBarVisibility="Visible"
                  Width="640" 
                  Height="480" 
                  MaxWidth="640" 
